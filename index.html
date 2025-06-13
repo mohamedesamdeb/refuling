@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Repayment Program</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 1rem;
+      background: #f7f7f7;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    select, input {
+      width: 100%;
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      margin: 1rem 0;
+      display: block;
+      width: 100%;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .img-box {
+      background: #ccc;
+      height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+    }
+    .img-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Repayment Program</h2>
+    <select id="techName">
+      <option value="">اختر اسم الفني</option>
+      <option value="Fady Youssef">Fady Youssef</option>
+      <!-- Add 24 more names here -->
+    </select>
+    <select id="office">
+      <option value="">اختر المكتب</option>
+      <option value="Shoubra Office">Shoubra Office</option>
+      <option value="Gesr Al Suez Office">Gesr Al Suez Office</option>
+      <option value="Mohandessin Office">Mohandessin Office</option>
+    </select>
+    <input type="text" id="siteNumber" placeholder="رقم الموقع" />
+    <button onclick="getLocation()">تحديد الموقع الجغرافي</button>
+    <div id="location"></div>
+
+    <button onclick="goToNextPage()">Submit Data</button>
+  </div>
+
+  <!-- Page 2 (preview and images) will be generated via JS dynamically -->
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    let latitude = '', longitude = '', mapsLink = '';
+
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          latitude = pos.coords.latitude.toFixed(6);
+          longitude = pos.coords.longitude.toFixed(6);
+          mapsLink = `https://maps.google.com/?q=${latitude},${longitude}`;
+          document.getElementById("location").innerHTML =
+            `الموقع: <a href="${mapsLink}" target="_blank">${latitude}, ${longitude}</a>`;
+        });
+      } else {
+        Swal.fire("خطأ", "المتصفح لا يدعم تحديد الموقع.", "error");
+      }
+    }
+
+    function goToNextPage() {
+      const name = document.getElementById("techName").value;
+      const office = document.getElementById("office").value;
+      const site = document.getElementById("siteNumber").value;
+
+      if (!name || !office || !site || !latitude || !longitude) {
+        return Swal.fire("تنبيه", "يجب إدخال جميع الحقول وتحديد الموقع.", "warning");
+      }
+
+      const timestamp = new Date().toLocaleString("en-EG", { hour12: true });
+      const CAI = `CAI${site}`;
+
+      const page2 = `
+        <div class='container'>
+          <h2>تأكيد البيانات</h2>
+          <p><strong>الاسم:</strong> ${name}</p>
+          <p><strong>المكتب:</strong> ${office}</p>
+          <p><strong>كود الموقع:</strong> ${CAI}</p>
+          <p><strong>الموقع:</strong> <a href='${mapsLink}' target='_blank'>${latitude}, ${longitude}</a></p>
+          <p><strong>الوقت والتاريخ:</strong> ${timestamp}</p>
+
+          <div class='grid'>
+            <div class='img-box' onclick='captureImage(this, "Fuel Gauge", "${name}", "${office}", "${CAI}", "${timestamp}", "${mapsLink}")'>Fuel Gauge +</div>
+            <div class='img-box' onclick='captureImage(this, "Invoice Front", "${name}", "${office}", "${CAI}", "${timestamp}", "${mapsLink}")'>Invoice Front +</div>
+            <div class='img-box' onclick='captureImage(this, "Invoice Back", "${name}", "${office}", "${CAI}", "${timestamp}", "${mapsLink}")'>Invoice Back +</div>
+            <div class='img-box' onclick='captureImage(this, "Honda Indicator", "${name}", "${office}", "${CAI}", "${timestamp}", "${mapsLink}")'>Honda Indicator +</div>
+          </div>
+
+          <button onclick='submitAll()'>إرسال</button>
+        </div>
+      `;
+
+      document.body.innerHTML = page2;
+    }
+
+    function captureImage(div, label, name, office, site, time, map) {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.capture = "environment";
+      input.onchange = e => {
+        const file = e.target.files[0];
+        const imgURL = URL.createObjectURL(file);
+        div.innerHTML = `<img src='${imgURL}' alt='${label}' />`;
+        // Add watermarking and uploading logic here if needed.
+      };
+      input.click();
+    }
+
+    function submitAll() {
+      Swal.fire({
+        title: 'جارٍ الإرسال...',
+        html: 'الرجاء الانتظار <b></b>%',
+        timer: 2000,
+        timerProgressBar: true,
+        didOpen: () => {
+          const b = Swal.getHtmlContainer().querySelector('b')
+          let percent = 0;
+          const interval = setInterval(() => {
+            percent += 5;
+            b.textContent = percent;
+          }, 100);
+        },
+        willClose: () => {
+          Swal.fire('تم الإرسال بنجاح!', '', 'success');
+        }
+      });
+    }
+  </script>
+</body>
+</html>
