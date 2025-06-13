@@ -83,12 +83,20 @@
       text-align: center;
       line-height: 20px;
     }
+
+    .back {
+        background-color: red;
+        width: 150px;
+    }
   </style>
 </head>
 <body>
 
 <div id="step1" class="screen active">
   <h2>إدخال البيانات</h2>
+  <button class="back"
+  onclick="window.location.href='https://mohamedesamdeb.github.io/attendance-app/';"
+  >الرجوع للصفحة السابقة</button>
   <select id="technician">
     <option disabled selected>اختر اسم الفني</option>
   </select>
@@ -101,10 +109,13 @@
   <input type="number" id="siteNumber" placeholder="رقم الموقع">
   <button onclick="getLocation()">تحديد الموقع الجغرافي</button>
   <button onclick="nextStep()">التالي</button>
+  
 </div>
 
 <div id="step2" class="screen">
-  <h2>تفاصيل ورفع الصور</h2>
+  <button class="back" 
+   onclick="window.location.href='https://mohamedesamdeb.github.io/attendance-app/';"
+   >الفاء</button>
   <div id="summary"></div>
   <div class="photos-grid">
     <div class="photo-box" onclick="captureImage(0, 'عداد البنزين')">
@@ -125,6 +136,7 @@
     </div>
   </div>
   <button onclick="submitData()">إرسال البيانات</button>
+   
   <div id="progressBar" style="display:none;">
     <div id="progressFill">0%</div>
   </div>
@@ -176,7 +188,6 @@
     const summary = `
       <p><strong>${name}</strong> - <strong>${office}</strong></p>
       <p>رقم الموقع: CAI${site}</p>
-      <p>الموقع: <a href="${address}" target="_blank">عرض على الخريطة</a></p>
       <p>خط العرض: ${latitude}, خط الطول: ${longitude}</p>
       <p>التاريخ: ${dateNow} - الوقت: ${timeNow}</p>
     `;
