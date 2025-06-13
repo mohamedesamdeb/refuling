@@ -263,82 +263,39 @@
 
 
 
-  function submitData() {
+ function submitData() {
   if (images.some(img => !img)) {
     Swal.fire('خطأ', 'يرجى التقاط كل الصور المطلوبة', 'error');
     return;
   }
 
-  document.getElementById('progressBar').style.display = 'block';
-  let progress = 0;
-  const interval = setInterval(() => {
-    progress += 5;
-    if (progress <= 100) {
-      document.getElementById('progressFill').style.width = `${progress}%`;
-      document.getElementById('progressFill').textContent = `${progress}%`;
-    }
-  }, 100);
+  const formData = new FormData();
+  formData.append("name", technicianSelect.value);
+  formData.append("office", document.getElementById('office').value);
+  formData.append("site", document.getElementById('siteNumber').value);
+  formData.append("lat", latitude);
+  formData.append("lng", longitude);
+  formData.append("date", dateNow);
+  formData.append("time", timeNow);
 
-  const readerPromises = images.map((file, i) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64 = reader.result.split(',')[1];
-        resolve({ filename: file.name, base64 });
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+  images.forEach((file, i) => {
+    formData.append(`blob${i}`, file, file.name);
   });
 
-  Promise.all(readerPromises).then(encodedImages => {
-    const payload = {
-      technician: document.getElementById('technician').value,
-      office: document.getElementById('office').value,
-      siteNumber: document.getElementById('siteNumber').value,
-      latitude,
-      longitude,
-      address,
-      images: encodedImages
-    };
+  document.getElementById('progressBar').style.display = 'block';
 
-    fetch("https://script.google.com/macros/s/AKfycbz33JiXmZ3K5os9oGEIQ-vFFCkmKTHqQnxchRJkNcqvgwo6oYljcLl973ifRXGl_0Al_Q/exec", {
-      method: "POST",
-      body: JSON.stringify(payload),
-      headers: {
-        "Content-Type": "application/json"
-      }
-    })
-    .then(res => res.text())
-    .then(response => {
-      clearInterval(interval);
-      document.getElementById('progressFill').style.width = `100%`;
-      document.getElementById('progressFill').textContent = `100%`;
-
-      Swal.fire('تم الإرسال', 'تم إرسال البيانات بنجاح!', 'success').then(() => {
-        // Reset
-        images = [null, null, null, null];
-        document.getElementById('technician').selectedIndex = 0;
-        document.getElementById('office').selectedIndex = 0;
-        document.getElementById('siteNumber').value = '';
-        document.getElementById('summary').innerHTML = '';
-        document.getElementById('progressBar').style.display = 'none';
-        document.getElementById('progressFill').style.width = '0%';
-        document.getElementById('progressFill').textContent = '0%';
-
-        document.querySelectorAll('.photo-box').forEach((box, i) => {
-          box.innerHTML = `<span>+</span><p>${['عداد البنزين', 'الفاتورة الأمامية', 'الفاتورة الخلفية', 'مؤشر الهوندا'][i]}</p>`;
-        });
-
-        document.getElementById('step2').classList.remove('active');
-        document.getElementById('step1').classList.add('active');
-      });
-    })
-    .catch(error => {
-      clearInterval(interval);
-      Swal.fire('خطأ', 'فشل في الإرسال: ' + error.message, 'error');
-      console.error("خطأ في الإرسال:", error);
+  fetch("https://script.google.com/macros/s/AKfycbwR4vEBv4J0166XtTSJ9LwU1yRX6yJjnsXLeommqdoO4ZJRm69DDa9rGNRzpzLOPr67zA/exec", {
+    method: "POST",
+    body: formData
+  })
+  .then(res => res.text())
+  .then(response => {
+    Swal.fire('تم الإرسال', 'تم إرسال البيانات بنجاح!', 'success').then(() => {
+      // reset الكود كما هو عندك
     });
+  })
+  .catch(err => {
+    Swal.fire('خطأ', 'حدث خطأ أثناء الإرسال: ' + err.message, 'error');
   });
 }
 
