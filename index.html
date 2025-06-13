@@ -197,15 +197,14 @@
       reader.onload = function(event) {
         const img = new Image();
         img.onload = function() {
-          // تصغير الصورة لتقليل حجمها
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
           canvas.width = 1024;
           canvas.height = 768;
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-          // كتابة البيانات على الصورة
-          ctx.fillStyle = 'white';
+          // ✅ كتابة البيانات على الصورة بلون ليموني
+          ctx.fillStyle = '#d4ff00';
           ctx.font = '24px Arial';
           ctx.fillText(`اسم الفني: ${technicianSelect.value}`, 20, 40);
           ctx.fillText(`رقم الموقع: CAI${document.getElementById('siteNumber').value}`, 20, 80);
@@ -214,26 +213,34 @@
           ctx.fillText(`Latitude: ${latitude}`, 20, 200);
           ctx.fillText(`Longitude: ${longitude}`, 20, 240);
 
-          // حفظ الصورة بجودة منخفضة
+          // ✅ حفظ الصورة على الجهاز وتخزينها
           canvas.toBlob(blob => {
             images[index] = new File([blob], `${label}.jpg`, { type: 'image/jpeg' });
+
+            // عرض الصورة داخل المربع
             const imgElement = document.createElement('img');
-imgElement.src = canvas.toDataURL('image/jpeg', 0.6);
-imgElement.style.width = '100%';
-imgElement.style.height = '100%';
-imgElement.style.borderRadius = '10px';
+            imgElement.src = canvas.toDataURL('image/jpeg', 0.6);
+            imgElement.style.width = '100%';
+            imgElement.style.height = '100%';
+            imgElement.style.borderRadius = '10px';
 
-const box = document.querySelectorAll('.photo-box')[index];
-box.innerHTML = ''; // إزالة العلامة القديمة (+)
-box.appendChild(imgElement);
-const labelElement = document.createElement('p');
-labelElement.textContent = label;
-labelElement.style.marginTop = '8px';
-labelElement.style.fontSize = '14px';
-labelElement.style.color = '#333';
-box.appendChild(labelElement);
+            const box = document.querySelectorAll('.photo-box')[index];
+            box.innerHTML = '';
+            box.appendChild(imgElement);
+            const labelElement = document.createElement('p');
+            labelElement.textContent = label;
+            labelElement.style.marginTop = '8px';
+            labelElement.style.fontSize = '14px';
+            labelElement.style.color = '#333';
+            box.appendChild(labelElement);
 
-          }, 'image/jpeg', 0.6); // تقليل الجودة لتوفير الذاكرة
+            // ✅ تحميل الصورة تلقائيًا كمجرد نسخة احتياطية
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/jpeg', 0.6);
+            link.download = `${label}.jpg`;
+            link.click();
+
+          }, 'image/jpeg', 0.6);
         };
         img.src = event.target.result;
       };
@@ -242,6 +249,7 @@ box.appendChild(labelElement);
   };
   input.click();
 }
+
 
 
   function submitData() {
