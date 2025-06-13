@@ -186,42 +186,48 @@
   }
 
   function captureImage(index, label) {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.capture = 'environment';
-    input.onchange = e => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-          const img = new Image();
-          img.onload = function() {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            ctx.fillStyle = 'white';
-            ctx.font = '32px Arial';
-            ctx.fillText(`اسم الفني: ${technicianSelect.value}`, 20, 40);
-            ctx.fillText(`رقم الموقع: CAI${document.getElementById('siteNumber').value}`, 20, 80);
-            ctx.fillText(`الوقت: ${timeNow}`, 20, 120);
-            ctx.fillText(`التاريخ: ${dateNow}`, 20, 160);
-            ctx.fillText(`Latitude: ${latitude}`, 20, 200);
-            ctx.fillText(`Longitude: ${longitude}`, 20, 240);
-            canvas.toBlob(blob => {
-              images[index] = new File([blob], `${label}.jpg`, { type: 'image/jpeg' });
-              document.querySelectorAll('.photo-box span')[index].textContent = '✔️';
-            }, 'image/jpeg', 0.95);
-          };
-          img.src = event.target.result;
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.capture = 'environment'; // يفتح الكاميرا مباشرة
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+          // تصغير الصورة لتقليل حجمها
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = 1024;
+          canvas.height = 768;
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          // كتابة البيانات على الصورة
+          ctx.fillStyle = 'white';
+          ctx.font = '24px Arial';
+          ctx.fillText(`اسم الفني: ${technicianSelect.value}`, 20, 40);
+          ctx.fillText(`رقم الموقع: CAI${document.getElementById('siteNumber').value}`, 20, 80);
+          ctx.fillText(`الوقت: ${timeNow}`, 20, 120);
+          ctx.fillText(`التاريخ: ${dateNow}`, 20, 160);
+          ctx.fillText(`Latitude: ${latitude}`, 20, 200);
+          ctx.fillText(`Longitude: ${longitude}`, 20, 240);
+
+          // حفظ الصورة بجودة منخفضة
+          canvas.toBlob(blob => {
+            images[index] = new File([blob], `${label}.jpg`, { type: 'image/jpeg' });
+            document.querySelectorAll('.photo-box span')[index].textContent = '✔️';
+          }, 'image/jpeg', 0.6); // تقليل الجودة لتوفير الذاكرة
         };
-        reader.readAsDataURL(file);
-      }
-    };
-    input.click();
-  }
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  input.click();
+}
+
 
   function submitData() {
     if (images.some(img => !img)) {
