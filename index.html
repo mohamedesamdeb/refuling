@@ -217,7 +217,22 @@
           // حفظ الصورة بجودة منخفضة
           canvas.toBlob(blob => {
             images[index] = new File([blob], `${label}.jpg`, { type: 'image/jpeg' });
-            document.querySelectorAll('.photo-box span')[index].textContent = '✔️';
+            const imgElement = document.createElement('img');
+imgElement.src = canvas.toDataURL('image/jpeg', 0.6);
+imgElement.style.width = '100%';
+imgElement.style.height = '100%';
+imgElement.style.borderRadius = '10px';
+
+const box = document.querySelectorAll('.photo-box')[index];
+box.innerHTML = ''; // إزالة العلامة القديمة (+)
+box.appendChild(imgElement);
+const labelElement = document.createElement('p');
+labelElement.textContent = label;
+labelElement.style.marginTop = '8px';
+labelElement.style.fontSize = '14px';
+labelElement.style.color = '#333';
+box.appendChild(labelElement);
+
           }, 'image/jpeg', 0.6); // تقليل الجودة لتوفير الذاكرة
         };
         img.src = event.target.result;
