@@ -86,7 +86,7 @@
 
     .back {
         background-color: red;
-        width: 100px;
+        width: 150px;
     }
   </style>
 </head>
@@ -96,7 +96,7 @@
   <h2>إدخال البيانات</h2>
   <button class="back"
   onclick="window.location.href='https://mohamedesamdeb.github.io/attendance-app/';"
-  >رجوع</button>
+  >الرجوع للصفحة السابقة</button>
   <select id="technician">
     <option disabled selected>اختر اسم الفني</option>
   </select>
@@ -115,7 +115,7 @@
 <div id="step2" class="screen">
   <button class="back" 
    onclick="window.location.href='https://mohamedesamdeb.github.io/attendance-app/';"
-   >إلغاء</button>
+   >الفاء</button>
   <div id="summary"></div>
   <div class="photos-grid">
     <div class="photo-box" onclick="captureImage(0, 'عداد البنزين')">
@@ -269,70 +269,75 @@
     return;
   }
 
-  const technician = technicianSelect.value;
-  const office = document.getElementById('office').value;
-  const siteNumber = document.getElementById('siteNumber').value;
+  document.getElementById('progressBar').style.display = 'block';
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += 5;
+    if (progress <= 100) {
+      document.getElementById('progressFill').style.width = `${progress}%`;
+      document.getElementById('progressFill').textContent = `${progress}%`;
+    }
+  }, 100);
 
-  // تجهيز الصور بصيغة Base64
-  const imagePromises = images.map((file, i) => {
-    return new Promise((resolve) => {
+  const readerPromises = images.map((file, i) => {
+    return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => {
-        resolve({
-          filename: file.name,
-          base64: reader.result.split(',')[1]
-        });
+        const base64 = reader.result.split(',')[1];
+        resolve({ filename: file.name, base64 });
       };
+      reader.onerror = reject;
       reader.readAsDataURL(file);
     });
   });
 
-  Swal.fire({
-    title: 'جارٍ الإرسال...',
-    allowOutsideClick: false,
-    didOpen: () => Swal.showLoading()
-  });
-
-  Promise.all(imagePromises).then((imageData) => {
+  Promise.all(readerPromises).then(encodedImages => {
     const payload = {
-      technician,
-      office,
-      siteNumber,
+      technician: document.getElementById('technician').value,
+      office: document.getElementById('office').value,
+      siteNumber: document.getElementById('siteNumber').value,
       latitude,
       longitude,
       address,
-      date: dateNow,
-      time: timeNow,
-      images: imageData
+      images: encodedImages
     };
 
-    fetch('https://script.google.com/macros/s/AKfycbz33JiXmZ3K5os9oGEIQ-vFFCkmKTHqQnxchRJkNcqvgwo6oYljcLl973ifRXGl_0Al_Q/exec', {
-      method: 'POST',
+    fetch("https://script.google.com/macros/s/AKfycbz33JiXmZ3K5os9oGEIQ-vFFCkmKTHqQnxchRJkNcqvgwo6oYljcLl973ifRXGl_0Al_Q/exec", {
+      method: "POST",
       body: JSON.stringify(payload),
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json"
       }
     })
     .then(res => res.text())
-    .then(msg => {
-      Swal.fire('تم الإرسال', msg, 'success').then(() => {
-        // الرجوع للصفحة الأولى بعد الإرسال
-        document.getElementById('step2').classList.remove('active');
-        document.getElementById('step1').classList.add('active');
+    .then(response => {
+      clearInterval(interval);
+      document.getElementById('progressFill').style.width = `100%`;
+      document.getElementById('progressFill').textContent = `100%`;
 
-        // تصفير النموذج
+      Swal.fire('تم الإرسال', 'تم إرسال البيانات بنجاح!', 'success').then(() => {
+        // Reset
+        images = [null, null, null, null];
         document.getElementById('technician').selectedIndex = 0;
         document.getElementById('office').selectedIndex = 0;
         document.getElementById('siteNumber').value = '';
         document.getElementById('summary').innerHTML = '';
-        images = [null, null, null, null];
+        document.getElementById('progressBar').style.display = 'none';
+        document.getElementById('progressFill').style.width = '0%';
+        document.getElementById('progressFill').textContent = '0%';
+
         document.querySelectorAll('.photo-box').forEach((box, i) => {
           box.innerHTML = `<span>+</span><p>${['عداد البنزين', 'الفاتورة الأمامية', 'الفاتورة الخلفية', 'مؤشر الهوندا'][i]}</p>`;
         });
+
+        document.getElementById('step2').classList.remove('active');
+        document.getElementById('step1').classList.add('active');
       });
     })
-    .catch(err => {
-      Swal.fire('خطأ في الإرسال', err.message, 'error');
+    .catch(error => {
+      clearInterval(interval);
+      Swal.fire('خطأ', 'فشل في الإرسال: ' + error.message, 'error');
+      console.error("خطأ في الإرسال:", error);
     });
   });
 }
