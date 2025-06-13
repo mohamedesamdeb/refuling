@@ -267,7 +267,27 @@
         document.getElementById('progressFill').textContent = `${progress}%`;
       } else {
         clearInterval(interval);
-        Swal.fire('تم الإرسال', 'تم إرسال البيانات بنجاح!', 'success');
+       Swal.fire('تم الإرسال', 'تم إرسال البيانات بنجاح!', 'success').then(() => {
+  // إعادة ضبط البيانات
+  images = [null, null, null, null];
+  document.getElementById('technician').selectedIndex = 0;
+  document.getElementById('office').selectedIndex = 0;
+  document.getElementById('siteNumber').value = '';
+  document.getElementById('summary').innerHTML = '';
+  document.getElementById('progressBar').style.display = 'none';
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('progressFill').textContent = '0%';
+
+  // مسح الصور من الصناديق
+  document.querySelectorAll('.photo-box').forEach((box, i) => {
+    box.innerHTML = `<span>+</span><p>${['عداد البنزين', 'الفاتورة الأمامية', 'الفاتورة الخلفية', 'مؤشر الهوندا'][i]}</p>`;
+  });
+
+  // الرجوع للصفحة الأولى
+  document.getElementById('step2').classList.remove('active');
+  document.getElementById('step1').classList.add('active');
+});
+
       }
     }, 100);
   }
