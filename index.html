@@ -264,44 +264,79 @@
 
 
   function submitData() {
-    if (images.some(img => !img)) {
-      Swal.fire('خطأ', 'يرجى التقاط كل الصور المطلوبة', 'error');
-      return;
-    }
+  if (images.some(img => !img)) {
+    Swal.fire('خطأ', 'يرجى التقاط كل الصور المطلوبة', 'error');
+    return;
+  }
 
-    document.getElementById('progressBar').style.display = 'block';
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 5;
-      if (progress <= 100) {
-        document.getElementById('progressFill').style.width = `${progress}%`;
-        document.getElementById('progressFill').textContent = `${progress}%`;
-      } else {
-        clearInterval(interval);
-       Swal.fire('تم الإرسال', 'تم إرسال البيانات بنجاح!', 'success').then(() => {
-  // إعادة ضبط البيانات
-  images = [null, null, null, null];
-  document.getElementById('technician').selectedIndex = 0;
-  document.getElementById('office').selectedIndex = 0;
-  document.getElementById('siteNumber').value = '';
-  document.getElementById('summary').innerHTML = '';
-  document.getElementById('progressBar').style.display = 'none';
-  document.getElementById('progressFill').style.width = '0%';
-  document.getElementById('progressFill').textContent = '0%';
+  const technician = technicianSelect.value;
+  const office = document.getElementById('office').value;
+  const siteNumber = document.getElementById('siteNumber').value;
 
-  // مسح الصور من الصناديق
-  document.querySelectorAll('.photo-box').forEach((box, i) => {
-    box.innerHTML = `<span>+</span><p>${['عداد البنزين', 'الفاتورة الأمامية', 'الفاتورة الخلفية', 'مؤشر الهوندا'][i]}</p>`;
+  // تجهيز الصور بصيغة Base64
+  const imagePromises = images.map((file, i) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        resolve({
+          filename: file.name,
+          base64: reader.result.split(',')[1]
+        });
+      };
+      reader.readAsDataURL(file);
+    });
   });
 
-  // الرجوع للصفحة الأولى
-  document.getElementById('step2').classList.remove('active');
-  document.getElementById('step1').classList.add('active');
-});
+  Swal.fire({
+    title: 'جارٍ الإرسال...',
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading()
+  });
 
+  Promise.all(imagePromises).then((imageData) => {
+    const payload = {
+      technician,
+      office,
+      siteNumber,
+      latitude,
+      longitude,
+      address,
+      date: dateNow,
+      time: timeNow,
+      images: imageData
+    };
+
+    fetch('https://script.google.com/macros/s/AKfycbz33JiXmZ3K5os9oGEIQ-vFFCkmKTHqQnxchRJkNcqvgwo6oYljcLl973ifRXGl_0Al_Q/exec', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json'
       }
-    }, 100);
-  }
+    })
+    .then(res => res.text())
+    .then(msg => {
+      Swal.fire('تم الإرسال', msg, 'success').then(() => {
+        // الرجوع للصفحة الأولى بعد الإرسال
+        document.getElementById('step2').classList.remove('active');
+        document.getElementById('step1').classList.add('active');
+
+        // تصفير النموذج
+        document.getElementById('technician').selectedIndex = 0;
+        document.getElementById('office').selectedIndex = 0;
+        document.getElementById('siteNumber').value = '';
+        document.getElementById('summary').innerHTML = '';
+        images = [null, null, null, null];
+        document.querySelectorAll('.photo-box').forEach((box, i) => {
+          box.innerHTML = `<span>+</span><p>${['عداد البنزين', 'الفاتورة الأمامية', 'الفاتورة الخلفية', 'مؤشر الهوندا'][i]}</p>`;
+        });
+      });
+    })
+    .catch(err => {
+      Swal.fire('خطأ في الإرسال', err.message, 'error');
+    });
+  });
+}
+
 </script>
 </body>
 </html>
