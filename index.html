@@ -269,35 +269,54 @@
     return;
   }
 
-  const formData = new FormData();
-  formData.append("name", technicianSelect.value);
-  formData.append("office", document.getElementById('office').value);
-  formData.append("site", document.getElementById('siteNumber').value);
-  formData.append("lat", latitude);
-  formData.append("lng", longitude);
-  formData.append("date", dateNow);
-  formData.append("time", timeNow);
+  const data = {
+    name: technicianSelect.value,
+    office: document.getElementById('office').value,
+    site: document.getElementById('siteNumber').value,
+    lat: latitude,
+    lng: longitude,
+    date: dateNow,
+    time: timeNow,
+    images: []
+  };
 
-  images.forEach((file, i) => {
-    formData.append(`blob${i}`, file, file.name);
+  const readerPromises = images.map((file, index) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64Data = reader.result.split(',')[1];
+        data.images.push({
+          name: file.name,
+          type: file.type,
+          data: base64Data
+        });
+        resolve();
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   });
 
-  document.getElementById('progressBar').style.display = 'block';
+  Promise.all(readerPromises).then(() => {
+    document.getElementById('progressBar').style.display = 'block';
 
-  fetch("https://script.google.com/macros/s/AKfycbxI48x7ncO0ICGs3E6U6NBFdSIPK3ZjCdjEfCpfLKFlthu68M_q_6rw6--9ooSPunbRjQ/exec", {
-    method: "POST",
-    body: formData
-  })
-  .then(res => res.text())
-  .then(response => {
-    Swal.fire('تم الإرسال', 'تم إرسال البيانات بنجاح!', 'success').then(() => {
-      // reset الكود كما هو عندك
+    fetch("https://script.google.com/macros/s/AKfycbxI48x7ncO0ICGs3E6U6NBFdSIPK3ZjCdjEfCpfLKFlthu68M_q_6rw6--9ooSPunbRjQ/exec", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    })
+    .then(res => res.text())
+    .then(response => {
+      Swal.fire('تم الإرسال', 'تم إرسال البيانات بنجاح!', 'success');
+    })
+    .catch(err => {
+      Swal.fire('خطأ', 'حدث خطأ أثناء الإرسال: ' + err.message, 'error');
     });
-  })
-  .catch(err => {
-    Swal.fire('خطأ', 'حدث خطأ أثناء الإرسال: ' + err.message, 'error');
   });
 }
+
 
 </script>
 </body>
