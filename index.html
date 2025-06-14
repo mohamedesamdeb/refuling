@@ -252,11 +252,11 @@
                 ctx.font = "bold 72px Arial";
                 ctx.fillText(`الفني: ${name}`, 40, 60);
                 ctx.fillText(`المكتب: ${office}`, 40, 160);
-                ctx.fillText(`رقم الموقع: CAI${site}`, 40, 340);
+                ctx.fillText(`رقم الموقع: CAI${site}`, 40, 240);
                 ctx.fillText(`الوقت: ${timeNow}`, 40, 390);
-                ctx.fillText(`التاريخ: ${dateNow}`, 40, 440);
-                ctx.fillText(`Latitude: ${latitude}`, 40, 590);
-                ctx.fillText(`Longitude: ${longitude}`, 40, 640);
+                ctx.fillText(`التاريخ: ${dateNow}`, 40, 470);
+                ctx.fillText(`Latitude: ${latitude}`, 40, 490);
+                ctx.fillText(`Longitude: ${longitude}`, 40, 540);
                 canvas.toBlob(
                   (blob) => {
                     images[index] = new File([blob], `${label}.jpg`, {
