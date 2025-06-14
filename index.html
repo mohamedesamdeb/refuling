@@ -248,11 +248,12 @@
 
                 const ctx = canvas.getContext("2d");
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-               let startY = 100; // البداية من فوق الصورة
-let lineHeight = 100; // المسافة بين كل سطر
+              let fontSize = 124;
+let lineHeight = fontSize + 20; // المسافة بين السطور = حجم الخط + هامش
+let startY = fontSize + 20; // بداية من أعلى الصورة بمسافة مناسبة
 
-ctx.font = "bold 90px Arial";
 ctx.fillStyle = "green";
+ctx.font = `bold ${fontSize}px Arial`;
 
 ctx.fillText(`الفني: ${name}`, 40, startY);
 ctx.fillText(`المكتب: ${office}`, 40, startY + lineHeight * 1);
@@ -261,6 +262,7 @@ ctx.fillText(`الوقت: ${timeNow}`, 40, startY + lineHeight * 3);
 ctx.fillText(`التاريخ: ${dateNow}`, 40, startY + lineHeight * 4);
 ctx.fillText(`Latitude: ${latitude}`, 40, startY + lineHeight * 5);
 ctx.fillText(`Longitude: ${longitude}`, 40, startY + lineHeight * 6);
+
 
                 canvas.toBlob(
                   (blob) => {
