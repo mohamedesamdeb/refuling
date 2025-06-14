@@ -74,7 +74,6 @@
   </head>
   <body>
     <div class="screen">
-      <h2>تصوير موقع السداد</h2>
       <select id="technician">
         <option disabled selected>اختر اسم الفني</option>
       </select>
@@ -163,63 +162,26 @@
         timeNow = "";
       let images = [null, null, null, null];
 
-async function getRealTimeFromServer() {
-  const res = await fetch("https://worldtimeapi.org/api/timezone/Africa/Cairo", {
-    headers: {
-      "Cache-Control": "no-cache"
-    }
-  });
-  const data = await res.json();
-
-  // التاريخ الكامل من السيرفر، بالشكل ده: "2025-06-14T03:20:00.123456+02:00"
-  const dateTimeString = data.datetime;
-
-  // استخرج التاريخ والوقت يدوياً
-  const [datePart, timePart] = dateTimeString.split("T");
-  const [year, month, day] = datePart.split("-");
-  const [hour, minute] = timePart.split(":");
-
-  // تنسيق التاريخ والوقت عربي
-  const formattedDate = `${day}/${month}/${year}`;
-  const formattedTime = `${hour}:${minute}`;
-
-  return {
-    dateNow: formattedDate,
-    timeNow: formattedTime
-  };
-}
-
-
-     async function getLocation() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        latitude = pos.coords.latitude.toFixed(6);
-        longitude = pos.coords.longitude.toFixed(6);
-
-        try {
-          const { dateNow: realDate, timeNow: realTime } = await getRealTimeFromServer();
-          dateNow = realDate;
-          timeNow = realTime;
-
-          document.getElementById("summary").innerHTML = `
-            <p>خط العرض: ${latitude}, خط الطول: ${longitude}</p>
-            <p>التاريخ: ${dateNow} - الوقت: ${timeNow}</p>
-          `;
-
-          Swal.fire("تم تحديد الموقع والوقت الرسمي ✅", "", "success");
-        } catch (err) {
-          Swal.fire("خطأ", "فشل في جلب الوقت من السيرفر", "error");
+      function getLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              latitude = pos.coords.latitude.toFixed(6);
+              longitude = pos.coords.longitude.toFixed(6);
+              const now = new Date();
+              dateNow = now.toLocaleDateString("ar-EG");
+              timeNow = now.toLocaleTimeString("ar-EG", { hour12: true });
+              document.getElementById(
+                "summary"
+              ).innerHTML = `<p>خط العرض: ${latitude}, خط الطول: ${longitude}</p><p>التاريخ: ${dateNow} - الوقت: ${timeNow}</p>`;
+              Swal.fire("تم تحديد الموقع", "", "success");
+            },
+            () => {
+              Swal.fire("خطأ", "لم يتم السماح بتحديد الموقع", "error");
+            }
+          );
         }
-      },
-      () => {
-        Swal.fire("خطأ", "لم يتم السماح بتحديد الموقع", "error");
       }
-    );
-  } else {
-    Swal.fire("خطأ", "المتصفح لا يدعم تحديد الموقع", "error");
-  }
-}
 
       function captureImage(index, label) {
         const name = document.getElementById("technician").value;
