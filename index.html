@@ -1,307 +1,298 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <title>Repayment App</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      background-color: #f7f7f7;
-    }
-    .screen {
-      display: none;
-      padding: 20px;
-      max-width: 500px;
-      margin: auto;
-      background: white;
-      min-height: 100vh;
-    }
-    .screen.active {
-      display: block;
-    }
-    h2 {
-      text-align: center;
-      color: #333;
-    }
-    select, input, button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-    button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    .photos-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-      margin-top: 20px;
-    }
-    .photo-box {
-      height: 140px;
-      background-color: #eee;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      cursor: pointer;
-    }
-    .photo-box span {
-      font-size: 32px;
-      color: #666;
-    }
-    .photo-box p {
-      font-size: 14px;
-      margin-top: 8px;
-      color: #333;
-    }
-    #progressBar {
-      margin-top: 20px;
-      background: #ddd;
-      height: 20px;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    #progressFill {
-      width: 0%;
-      height: 100%;
-      background: green;
-      color: white;
-      text-align: center;
-      line-height: 20px;
-    }
-
-    .back {
-        background-color: red;
-        width: 150px;
-    }
-  </style>
-</head>
-<body>
-
-<div id="step1" class="screen active">
-  <h2>إدخال البيانات</h2>
-  <button class="back"
-  onclick="window.location.href='https://mohamedesamdeb.github.io/attendance-app/';"
-  >الرجوع للصفحة السابقة</button>
-  <select id="technician">
-    <option disabled selected>اختر اسم الفني</option>
-  </select>
-  <select id="office">
-    <option disabled selected>اختر المكتب</option>
-    <option value="شبرا">مكتب شبرا</option>
-    <option value="جسر السويس">مكتب جسر السويس</option>
-    <option value="المهندسين">مكتب المهندسين</option>
-  </select>
-  <input type="number" id="siteNumber" placeholder="رقم الموقع">
-  <button onclick="getLocation()">تحديد الموقع الجغرافي</button>
-  <button onclick="nextStep()">التالي</button>
-  
-</div>
-
-<div id="step2" class="screen">
-  <button class="back" 
-   onclick="window.location.href='https://mohamedesamdeb.github.io/attendance-app/';"
-   >الفاء</button>
-  <div id="summary"></div>
-  <div class="photos-grid">
-    <div class="photo-box" onclick="captureImage(0, 'عداد البنزين')">
-      <span>+</span>
-      <p>عداد البنزين</p>
-    </div>
-    <div class="photo-box" onclick="captureImage(1, 'الفاتورة الأمامية')">
-      <span>+</span>
-      <p>الفاتورة الأمامية</p>
-    </div>
-    <div class="photo-box" onclick="captureImage(2, 'الفاتورة الخلفية')">
-      <span>+</span>
-      <p>الفاتورة الخلفية</p>
-    </div>
-    <div class="photo-box" onclick="captureImage(3, 'مؤشر الهوندا')">
-      <span>+</span>
-      <p>مؤشر الهوندا</p>
-    </div>
-  </div>
-  <button onclick="submitData()">إرسال البيانات</button>
-   
-  <div id="progressBar" style="display:none;">
-    <div id="progressFill">0%</div>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-  const technicianList = Array.from({length: 25}, (_, i) => `فني ${i + 1}`);
-  const technicianSelect = document.getElementById('technician');
-  technicianList.forEach(name => {
-    const opt = document.createElement('option');
-    opt.value = name;
-    opt.textContent = name;
-    technicianSelect.appendChild(opt);
-  });
-
-  let latitude = '', longitude = '', address = '', dateNow = '', timeNow = '';
-  let images = [null, null, null, null];
-
-  function getLocation() {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(pos => {
-        latitude = pos.coords.latitude.toFixed(6);
-        longitude = pos.coords.longitude.toFixed(6);
-        address = `https://www.google.com/maps?q=${latitude},${longitude}`;
-        Swal.fire('تم تحديد الموقع', `خط العرض: ${latitude}, خط الطول: ${longitude}`, 'success');
-      }, () => {
-        Swal.fire('خطأ', 'لم يتم السماح بتحديد الموقع', 'error');
-      });
-    } else {
-      Swal.fire('خطأ', 'المتصفح لا يدعم تحديد الموقع', 'error');
-    }
-  }
-
-  function nextStep() {
-    const name = technicianSelect.value;
-    const office = document.getElementById('office').value;
-    const site = document.getElementById('siteNumber').value;
-
-    if (!name || !office || !site || !latitude || !longitude) {
-      Swal.fire('تنبيه', 'يرجى تعبئة كل الحقول وتحديد الموقع', 'warning');
-      return;
-    }
-
-    const now = new Date();
-    dateNow = now.toLocaleDateString('ar-EG');
-    timeNow = now.toLocaleTimeString('ar-EG', { hour12: true });
-
-    const summary = `
-      <p><strong>${name}</strong> - <strong>${office}</strong></p>
-      <p>رقم الموقع: CAI${site}</p>
-      <p>خط العرض: ${latitude}, خط الطول: ${longitude}</p>
-      <p>التاريخ: ${dateNow} - الوقت: ${timeNow}</p>
-    `;
-    document.getElementById('summary').innerHTML = summary;
-    document.getElementById('step1').classList.remove('active');
-    document.getElementById('step2').classList.add('active');
-  }
-
-  function captureImage(index, label) {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/*';
-  input.capture = 'environment'; // يفتح الكاميرا مباشرة
-  input.onchange = e => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        const img = new Image();
-        img.onload = function() {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          canvas.width = 1024;
-          canvas.height = 768;
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-          // ✅ كتابة البيانات على الصورة بلون ليموني
-          ctx.fillStyle = 'green';
-          ctx.font = '24px Arial';
-          ctx.fillText(`اسم الفني: ${technicianSelect.value}`, 20, 40);
-          ctx.fillText(`رقم الموقع: CAI${document.getElementById('siteNumber').value}`, 20, 80);
-          ctx.fillText(`الوقت: ${timeNow}`, 20, 120);
-          ctx.fillText(`التاريخ: ${dateNow}`, 20, 160);
-          ctx.fillText(`Latitude: ${latitude}`, 20, 200);
-          ctx.fillText(`Longitude: ${longitude}`, 20, 240);
-
-          // ✅ حفظ الصورة على الجهاز وتخزينها
-          canvas.toBlob(blob => {
-            images[index] = new File([blob], `${label}.jpg`, { type: 'image/jpeg' });
-
-            // عرض الصورة داخل المربع
-            const imgElement = document.createElement('img');
-            imgElement.src = canvas.toDataURL('image/jpeg', 0.6);
-            imgElement.style.width = '100%';
-            imgElement.style.height = '100%';
-            imgElement.style.borderRadius = '10px';
-
-            const box = document.querySelectorAll('.photo-box')[index];
-            box.innerHTML = '';
-            box.appendChild(imgElement);
-            const labelElement = document.createElement('p');
-            labelElement.textContent = label;
-            labelElement.style.marginTop = '8px';
-            labelElement.style.fontSize = '14px';
-            labelElement.style.color = '#333';
-            box.appendChild(labelElement);
-
-            // ✅ تحميل الصورة تلقائيًا كمجرد نسخة احتياطية
-            const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/jpeg', 0.6);
-            link.download = `${label}.jpg`;
-            link.click();
-
-          }, 'image/jpeg', 0.6);
-        };
-        img.src = event.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-  input.click();
-}
-
-
-
-  function submitData() {
-    if (images.some(img => !img)) {
-      Swal.fire('خطأ', 'يرجى التقاط كل الصور المطلوبة', 'error');
-      return;
-    }
-
-    document.getElementById('progressBar').style.display = 'block';
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 5;
-      if (progress <= 100) {
-        document.getElementById('progressFill').style.width = `${progress}%`;
-        document.getElementById('progressFill').textContent = `${progress}%`;
-      } else {
-        clearInterval(interval);
-       Swal.fire('تم الإرسال', 'تم إرسال البيانات بنجاح!', 'success').then(() => {
-  // إعادة ضبط البيانات
-  images = [null, null, null, null];
-  document.getElementById('technician').selectedIndex = 0;
-  document.getElementById('office').selectedIndex = 0;
-  document.getElementById('siteNumber').value = '';
-  document.getElementById('summary').innerHTML = '';
-  document.getElementById('progressBar').style.display = 'none';
-  document.getElementById('progressFill').style.width = '0%';
-  document.getElementById('progressFill').textContent = '0%';
-
-  // مسح الصور من الصناديق
-  document.querySelectorAll('.photo-box').forEach((box, i) => {
-    box.innerHTML = `<span>+</span><p>${['عداد البنزين', 'الفاتورة الأمامية', 'الفاتورة الخلفية', 'مؤشر الهوندا'][i]}</p>`;
-  });
-
-  // الرجوع للصفحة الأولى
-  document.getElementById('step2').classList.remove('active');
-  document.getElementById('step1').classList.add('active');
-});
-
+  <head>
+    <meta charset="UTF-8" />
+    <title>Repayment - التقاط الصور</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
       }
-    }, 100);
-  }
-</script>
-</body>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        background-color: #f7f7f7;
+      }
+      .screen {
+        padding: 20px;
+        max-width: 500px;
+        margin: auto;
+        background: white;
+        min-height: 100vh;
+      }
+      h2 {
+        text-align: center;
+        color: #333;
+      }
+      select,
+      input,
+      button {
+        width: 100%;
+        padding: 12px;
+        margin-top: 10px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+      }
+      button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      .photos-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-top: 20px;
+      }
+      .photo-box {
+        height: 140px;
+        background-color: #eee;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        cursor: pointer;
+        text-align: center;
+      }
+      .photo-box span {
+        font-size: 32px;
+        color: #666;
+      }
+      .photo-box p {
+        font-size: 14px;
+        margin-top: 8px;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="screen">
+      <h2>تصوير موقع السداد</h2>
+      <select id="technician">
+        <option disabled selected>اختر اسم الفني</option>
+      </select>
+      <select id="office">
+        <option disabled selected>اختر المكتب</option>
+        <option value="شبرا">مكتب شبرا</option>
+        <option value="جسر السويس">مكتب جسر السويس</option>
+        <option value="المهندسين">مكتب المهندسين</option>
+      </select>
+      <input type="number" id="siteNumber" placeholder="رقم الموقع" />
+      <button onclick="getLocation()">تحديد الموقع الجغرافي</button>
+      <div
+        id="summary"
+        style="margin-top: 15px; font-size: 15px; color: #444"
+      ></div>
+      <div class="photos-grid">
+        <div class="photo-box" onclick="captureImage(0, 'عداد البنزين')">
+          <span>+</span>
+          <p>عداد البنزين</p>
+        </div>
+        <div class="photo-box" onclick="captureImage(1, 'الفاتورة الأمامية')">
+          <span>+</span>
+          <p>الفاتورة الأمامية</p>
+        </div>
+        <div class="photo-box" onclick="captureImage(2, 'الفاتورة الخلفية')">
+          <span>+</span>
+          <p>الفاتورة الخلفية</p>
+        </div>
+        <div class="photo-box" onclick="captureImage(3, 'مؤشر الهوندا')">
+          <span>+</span>
+          <p>مؤشر الهوندا</p>
+        </div>
+      </div>
+      <button onclick="downloadImages()">📥 تحميل الصور</button>
+    </div>
+
+    <div
+      id="progressContainer"
+      style="
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 300px;
+        height: 30px;
+        background-color: #eee;
+        border-radius: 15px;
+        box-shadow: 0 0 10px #aaa;
+        z-index: 9999;
+      "
+    >
+      <div
+        id="progressBar"
+        style="
+          height: 100%;
+          width: 0%;
+          background-color: #28a745;
+          border-radius: 15px;
+          text-align: center;
+          color: white;
+          line-height: 30px;
+          font-weight: bold;
+        "
+      >
+        0%
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+      const technicianList = Array.from(
+        { length: 25 },
+        (_, i) => `فني ${i + 1}`
+      );
+      technicianList.forEach((name) => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        document.getElementById("technician").appendChild(opt);
+      });
+
+      let latitude = "",
+        longitude = "",
+        dateNow = "",
+        timeNow = "";
+      let images = [null, null, null, null];
+
+      function getLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              latitude = pos.coords.latitude.toFixed(6);
+              longitude = pos.coords.longitude.toFixed(6);
+              const now = new Date();
+              dateNow = now.toLocaleDateString("ar-EG");
+              timeNow = now.toLocaleTimeString("ar-EG", { hour12: true });
+              document.getElementById(
+                "summary"
+              ).innerHTML = `<p>خط العرض: ${latitude}, خط الطول: ${longitude}</p><p>التاريخ: ${dateNow} - الوقت: ${timeNow}</p>`;
+              Swal.fire("تم تحديد الموقع", "", "success");
+            },
+            () => {
+              Swal.fire("خطأ", "لم يتم السماح بتحديد الموقع", "error");
+            }
+          );
+        }
+      }
+
+      function captureImage(index, label) {
+        const name = document.getElementById("technician").value;
+        const office = document.getElementById("office").value;
+        const site = document.getElementById("siteNumber").value;
+        if (!name || !office || !site || !latitude || !longitude) {
+          Swal.fire("يرجى تعبئة كل البيانات وتحديد الموقع", "", "warning");
+          return;
+        }
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.capture = "environment";
+        input.onchange = (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function (event) {
+              const img = new Image();
+              img.onload = function () {
+                const canvas = document.createElement("canvas");
+                canvas.width = 1920;
+                canvas.height = 1080;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "green";
+                ctx.font = "bold 36px Arial";
+                ctx.fillText(`الفني: ${name}`, 40, 60);
+                ctx.fillText(`المكتب: ${office}`, 40, 110);
+                ctx.fillText(`رقم الموقع: CAI${site}`, 40, 160);
+                ctx.fillText(`الوقت: ${timeNow}`, 40, 210);
+                ctx.fillText(`التاريخ: ${dateNow}`, 40, 260);
+                ctx.fillText(`Latitude: ${latitude}`, 40, 310);
+                ctx.fillText(`Longitude: ${longitude}`, 40, 360);
+                canvas.toBlob(
+                  (blob) => {
+                    images[index] = new File([blob], `${label}.jpg`, {
+                      type: "image/jpeg",
+                    });
+                    const imgElement = document.createElement("img");
+                    imgElement.src = canvas.toDataURL("image/jpeg", 0.9);
+                    imgElement.style.width = "100%";
+                    imgElement.style.height = "100%";
+                    imgElement.style.borderRadius = "10px";
+                    const box = document.querySelectorAll(".photo-box")[index];
+                    box.innerHTML = "";
+                    box.appendChild(imgElement);
+                    const labelElement = document.createElement("p");
+                    labelElement.textContent = label;
+                    box.appendChild(labelElement);
+                  },
+                  "image/jpeg",
+                  0.9
+                );
+              };
+              img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+        input.click();
+      }
+
+      function downloadImages() {
+        if (images.some((img) => !img)) {
+          Swal.fire(
+            "خطأ",
+            "يرجى التقاط كل الصور المطلوبة قبل التحميل",
+            "error"
+          );
+          return;
+        }
+
+        images.forEach((file) => {
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(file);
+          link.download = file.name;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        });
+
+        // نبدأ عرض البروجرس بار بدل الرسالة
+        showProgressBar();
+      }
+
+      function showProgressBar() {
+        const container = document.getElementById("progressContainer");
+        const bar = document.getElementById("progressBar");
+        container.style.display = "block";
+
+        let percent = 0;
+        const interval = setInterval(() => {
+          percent++;
+          bar.style.width = percent + "%";
+          bar.textContent = percent + "%";
+
+          if (percent >= 100) {
+            clearInterval(interval);
+            container.style.display = "none"; // إخفاء البروجرس بار بعد ما يخلص
+            Swal.fire(
+              "تم التحميل ✅",
+              "تم تحميل جميع الصور بنجاح",
+              "success"
+            ).then(() => {
+              location.reload(); // إعادة تحميل الصفحة
+            });
+          }
+        }, 30); // سرعة التقدم: 30ms للواحد في المية
+      }
+    </script>
+  </body>
 </html>
