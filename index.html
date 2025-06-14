@@ -164,37 +164,38 @@
       let images = [null, null, null, null];
 
       function getLocation() {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              latitude = pos.coords.latitude.toFixed(6);
-              longitude = pos.coords.longitude.toFixed(6);
-              fetch('https://worldtimeapi.org/api/timezone/Africa/Cairo')
-  .then(res => res.json())
-  .then(data => {
-    const now = new Date(data.datetime);
-    dateNow = now.toLocaleDateString('ar-EG');
-    timeNow = now.toLocaleTimeString('ar-EG', { hour12: true });
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        latitude = pos.coords.latitude.toFixed(6);
+        longitude = pos.coords.longitude.toFixed(6);
 
-    document.getElementById('summary').innerHTML =
-      `<p>خط العرض: ${latitude}, خط الطول: ${longitude}</p><p>التاريخ: ${dateNow} - الوقت: ${timeNow}</p>`;
-    
-    Swal.fire('تم تحديد الموقع', '', 'success');
-  });
+        try {
+          const res = await fetch("https://worldtimeapi.org/api/timezone/Africa/Cairo");
+          const data = await res.json();
 
-              dateNow = now.toLocaleDateString("ar-EG");
-              timeNow = now.toLocaleTimeString("ar-EG", { hour12: true });
-              document.getElementById(
-                "summary"
-              ).innerHTML = `<p>خط العرض: ${latitude}, خط الطول: ${longitude}</p><p>التاريخ: ${dateNow} - الوقت: ${timeNow}</p>`;
-              Swal.fire("تم تحديد الموقع", "", "success");
-            },
-            () => {
-              Swal.fire("خطأ", "لم يتم السماح بتحديد الموقع", "error");
-            }
-          );
+          const serverTime = new Date(data.datetime);
+          dateNow = serverTime.toLocaleDateString("ar-EG");
+          timeNow = serverTime.toLocaleTimeString("ar-EG", { hour12: true });
+
+          document.getElementById("summary").innerHTML = `
+            <p>خط العرض: ${latitude}, خط الطول: ${longitude}</p>
+            <p>التاريخ: ${dateNow} - الوقت: ${timeNow}</p>
+          `;
+
+          Swal.fire("تم تحديد الموقع والوقت الرسمي ✅", "", "success");
+        } catch (err) {
+          Swal.fire("خطأ", "فشل في جلب الوقت من السيرفر", "error");
         }
+      },
+      () => {
+        Swal.fire("خطأ", "لم يتم السماح بتحديد الموقع", "error");
       }
+    );
+  } else {
+    Swal.fire("خطأ", "المتصفح لا يدعم تحديد الموقع", "error");
+  }
+}
 
       function captureImage(index, label) {
         const name = document.getElementById("technician").value;
