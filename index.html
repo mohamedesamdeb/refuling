@@ -163,7 +163,23 @@
         timeNow = "";
       let images = [null, null, null, null];
 
-      function getLocation() {
+async function getRealTimeFromServer() {
+  const res = await fetch("https://worldtimeapi.org/api/timezone/Africa/Cairo", {
+    headers: {
+      "Cache-Control": "no-cache"
+    }
+  });
+  const data = await res.json();
+  const serverTime = new Date(data.datetime);
+
+  return {
+    dateNow: serverTime.toLocaleDateString("ar-EG"),
+    timeNow: serverTime.toLocaleTimeString("ar-EG", { hour12: true })
+  };
+}
+
+
+     async function getLocation() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
@@ -171,12 +187,9 @@
         longitude = pos.coords.longitude.toFixed(6);
 
         try {
-          const res = await fetch("https://worldtimeapi.org/api/timezone/Africa/Cairo");
-          const data = await res.json();
-
-          const serverTime = new Date(data.datetime);
-          dateNow = serverTime.toLocaleDateString("ar-EG");
-          timeNow = serverTime.toLocaleTimeString("ar-EG", { hour12: true });
+          const { dateNow: realDate, timeNow: realTime } = await getRealTimeFromServer();
+          dateNow = realDate;
+          timeNow = realTime;
 
           document.getElementById("summary").innerHTML = `
             <p>خط العرض: ${latitude}, خط الطول: ${longitude}</p>
