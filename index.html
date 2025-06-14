@@ -269,52 +269,52 @@
       }
 
       function downloadImages() {
-        if (images.some((img) => !img)) {
-          Swal.fire(
-            "خطأ",
-            "يرجى التقاط كل الصور المطلوبة قبل التحميل",
-            "error"
-          );
-          return;
-        }
+  if (images.some((img) => !img)) {
+    Swal.fire(
+      "خطأ",
+      "يرجى التقاط كل الصور المطلوبة قبل التحميل",
+      "error"
+    );
+    return;
+  }
 
-        images.forEach((file) => {
-          const link = document.createElement("a");
-          link.href = URL.createObjectURL(file);
-          link.download = file.name;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        });
+  // عرض البروجرس وتحميل الصور بعده
+  showProgressBarAndDownload();
+}
 
-        // نبدأ عرض البروجرس بار بدل الرسالة
-        showProgressBar();
-      }
 
-      function showProgressBar() {
-        const container = document.getElementById("progressContainer");
-        const bar = document.getElementById("progressBar");
-        container.style.display = "block";
+      function showProgressBarAndDownload() {
+  const container = document.getElementById("progressContainer");
+  const bar = document.getElementById("progressBar");
+  container.style.display = "block";
 
-        let percent = 0;
-        const interval = setInterval(() => {
-          percent++;
-          bar.style.width = percent + "%";
-          bar.textContent = percent + "%";
+  let percent = 0;
+  const interval = setInterval(() => {
+    percent++;
+    bar.style.width = percent + "%";
+    bar.textContent = percent + "%";
 
-          if (percent >= 100) {
-            clearInterval(interval);
-            container.style.display = "none"; // إخفاء البروجرس بار بعد ما يخلص
-            Swal.fire(
-              "تم التحميل ✅",
-              "تم تحميل جميع الصور بنجاح",
-              "success"
-            ).then(() => {
-              location.reload(); // إعادة تحميل الصفحة
-            });
-          }
-        }, 30); // سرعة التقدم: 30ms للواحد في المية
-      }
+    if (percent >= 100) {
+      clearInterval(interval);
+      container.style.display = "none";
+
+      // ✅ بعد ما البروجرس يوصل 100% نبدأ تحميل الصور
+      images.forEach((file) => {
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(file);
+        link.download = file.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+
+      // ✅ بعد التحميل نعرض الرسالة ونرجّع المستخدم
+      Swal.fire("تم التحميل ✅", "تم تحميل جميع الصور بنجاح", "success").then(() => {
+        location.reload();
+      });
+    }
+  }, 30); // سرعة التقدم: 30ms لكل 1%
+}
     </script>
   </body>
 </html>
