@@ -186,25 +186,42 @@
       let images = [null, null, null, null];
 
       function getLocation() {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              latitude = pos.coords.latitude.toFixed(6);
-              longitude = pos.coords.longitude.toFixed(6);
-              const now = new Date();
-              dateNow = now.toLocaleDateString("ar-EG");
-              timeNow = now.toLocaleTimeString("ar-EG", { hour12: true });
-              document.getElementById(
-                "summary"
-              ).innerHTML = `<p>خط العرض: ${latitude}, خط الطول: ${longitude}</p><p>التاريخ: ${dateNow} - الوقت: ${timeNow}</p>`;
-              Swal.fire("تم تحديد الموقع", "", "success");
-            },
-            () => {
-              Swal.fire("خطأ", "لم يتم السماح بتحديد الموقع", "error");
-            }
-          );
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        latitude = pos.coords.latitude.toFixed(6);
+        longitude = pos.coords.longitude.toFixed(6);
+        const now = new Date();
+        dateNow = now.toLocaleDateString("ar-EG");
+        timeNow = now.toLocaleTimeString("ar-EG", { hour12: true });
+        document.getElementById(
+          "summary"
+        ).innerHTML = `<p>خط العرض: ${latitude}, خط الطول: ${longitude}</p><p>التاريخ: ${dateNow} - الوقت: ${timeNow}</p>`;
+        Swal.fire("تم تحديد الموقع", "", "success");
+      },
+      (error) => {
+        let message = "";
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            message = "تم رفض صلاحية تحديد الموقع. من فضلك فعّل الموقع وحاول مرة أخرى.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            message = "معلومات الموقع غير متوفرة حاليًا.";
+            break;
+          case error.TIMEOUT:
+            message = "انتهت مهلة تحديد الموقع. حاول مرة أخرى.";
+            break;
+          default:
+            message = "حدث خطأ غير متوقع أثناء محاولة تحديد الموقع.";
         }
+        Swal.fire("خطأ في تحديد الموقع", message, "error");
       }
+    );
+  } else {
+    Swal.fire("خطأ", "المتصفح لا يدعم تحديد الموقع الجغرافي", "error");
+  }
+}
+
 
       function captureImage(index, label) {
         const name = document.getElementById("technician").value;
