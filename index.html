@@ -249,14 +249,14 @@
                 const ctx = canvas.getContext("2d");
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = "green";
-                ctx.font = "bold 64px Arial";
+                ctx.font = "bold 72px Arial";
                 ctx.fillText(`الفني: ${name}`, 40, 60);
-                ctx.fillText(`المكتب: ${office}`, 40, 110);
-                ctx.fillText(`رقم الموقع: CAI${site}`, 40, 160);
-                ctx.fillText(`الوقت: ${timeNow}`, 40, 210);
-                ctx.fillText(`التاريخ: ${dateNow}`, 40, 260);
-                ctx.fillText(`Latitude: ${latitude}`, 40, 310);
-                ctx.fillText(`Longitude: ${longitude}`, 40, 360);
+                ctx.fillText(`المكتب: ${office}`, 40, 140);
+                ctx.fillText(`رقم الموقع: CAI${site}`, 40, 240);
+                ctx.fillText(`الوقت: ${timeNow}`, 40, 290);
+                ctx.fillText(`التاريخ: ${dateNow}`, 40, 340);
+                ctx.fillText(`Latitude: ${latitude}`, 40, 390);
+                ctx.fillText(`Longitude: ${longitude}`, 40, 440);
                 canvas.toBlob(
                   (blob) => {
                     images[index] = new File([blob], `${label}.jpg`, {
