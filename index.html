@@ -251,12 +251,12 @@
                 ctx.fillStyle = "green";
                 ctx.font = "bold 72px Arial";
                 ctx.fillText(`الفني: ${name}`, 40, 60);
-                ctx.fillText(`المكتب: ${office}`, 40, 160);
-                ctx.fillText(`رقم الموقع: CAI${site}`, 40, 240);
-                ctx.fillText(`الوقت: ${timeNow}`, 40, 270);
-                ctx.fillText(`التاريخ: ${dateNow}`, 40, 310);
-                ctx.fillText(`Latitude: ${latitude}`, 40, 340);
-                ctx.fillText(`Longitude: ${longitude}`, 40, 410);
+                ctx.fillText(`المكتب: ${office}`, 40, 110);
+                ctx.fillText(`رقم الموقع: CAI${site}`, 40, 160);
+                ctx.fillText(`الوقت: ${timeNow}`, 40, 210);
+                ctx.fillText(`التاريخ: ${dateNow}`, 40, 260);
+                ctx.fillText(`Latitude: ${latitude}`, 40, 310);
+                ctx.fillText(`Longitude: ${longitude}`, 40, 360);
                 canvas.toBlob(
                   (blob) => {
                     images[index] = new File([blob], `${label}.jpg`, {
