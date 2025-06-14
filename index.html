@@ -263,61 +263,45 @@
 
 
 
- function submitData() {
-  if (images.some(img => !img)) {
-    Swal.fire('خطأ', 'يرجى التقاط كل الصور المطلوبة', 'error');
-    return;
-  }
+  function submitData() {
+    if (images.some(img => !img)) {
+      Swal.fire('خطأ', 'يرجى التقاط كل الصور المطلوبة', 'error');
+      return;
+    }
 
-  const data = {
-    name: technicianSelect.value,
-    office: document.getElementById('office').value,
-    site: document.getElementById('siteNumber').value,
-    lat: latitude,
-    lng: longitude,
-    date: dateNow,
-    time: timeNow,
-    images: []
-  };
-
-  const readerPromises = images.map((file, index) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64Data = reader.result.split(',')[1];
-        data.images.push({
-          name: file.name,
-          type: file.type,
-          data: base64Data
-        });
-        resolve();
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  });
-
-  Promise.all(readerPromises).then(() => {
     document.getElementById('progressBar').style.display = 'block';
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 5;
+      if (progress <= 100) {
+        document.getElementById('progressFill').style.width = `${progress}%`;
+        document.getElementById('progressFill').textContent = `${progress}%`;
+      } else {
+        clearInterval(interval);
+       Swal.fire('تم الإرسال', 'تم إرسال البيانات بنجاح!', 'success').then(() => {
+  // إعادة ضبط البيانات
+  images = [null, null, null, null];
+  document.getElementById('technician').selectedIndex = 0;
+  document.getElementById('office').selectedIndex = 0;
+  document.getElementById('siteNumber').value = '';
+  document.getElementById('summary').innerHTML = '';
+  document.getElementById('progressBar').style.display = 'none';
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('progressFill').textContent = '0%';
 
-    fetch("https://script.google.com/macros/s/AKfycbztbfH14AnmCUB0LICtg6SlZOXUShX03-KtQ0VvaNVV4CgCCYYWcsztHGmQv43mz-jxew/exec", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(data)
-    })
-    .then(res => res.text())
-    .then(response => {
-      Swal.fire('تم الإرسال', 'تم إرسال البيانات بنجاح!', 'success');
-    })
-    .catch(err => {
-      Swal.fire('خطأ', 'حدث خطأ أثناء الإرسال: ' + err.message, 'error');
-    });
+  // مسح الصور من الصناديق
+  document.querySelectorAll('.photo-box').forEach((box, i) => {
+    box.innerHTML = `<span>+</span><p>${['عداد البنزين', 'الفاتورة الأمامية', 'الفاتورة الخلفية', 'مؤشر الهوندا'][i]}</p>`;
   });
-}
 
+  // الرجوع للصفحة الأولى
+  document.getElementById('step2').classList.remove('active');
+  document.getElementById('step1').classList.add('active');
+});
 
+      }
+    }, 100);
+  }
 </script>
 </body>
 </html>
