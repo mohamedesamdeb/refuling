@@ -170,11 +170,22 @@ async function getRealTimeFromServer() {
     }
   });
   const data = await res.json();
-  const serverTime = new Date(data.datetime);
+
+  // التاريخ الكامل من السيرفر، بالشكل ده: "2025-06-14T03:20:00.123456+02:00"
+  const dateTimeString = data.datetime;
+
+  // استخرج التاريخ والوقت يدوياً
+  const [datePart, timePart] = dateTimeString.split("T");
+  const [year, month, day] = datePart.split("-");
+  const [hour, minute] = timePart.split(":");
+
+  // تنسيق التاريخ والوقت عربي
+  const formattedDate = `${day}/${month}/${year}`;
+  const formattedTime = `${hour}:${minute}`;
 
   return {
-    dateNow: serverTime.toLocaleDateString("ar-EG"),
-    timeNow: serverTime.toLocaleTimeString("ar-EG", { hour12: true })
+    dateNow: formattedDate,
+    timeNow: formattedTime
   };
 }
 
