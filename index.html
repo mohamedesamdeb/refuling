@@ -145,6 +145,51 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+// قائمة الفنيين
+  const technicianList = [
+    "محمد عبده توفيق",
+    "مجدى عبد المجيد احمد",
+    "أحمد عزت عبدالعزيز",
+    "احمد على عبد الحافظ",
+    "محمد احمد عبد الحميد",
+    "ابراهيم حسنى عبده",
+    "فوزى محمد عبد الشافى",
+    "على حسن على",
+    "فريد ابراهيم عباس",
+    "حسين هلال حسين",
+    "على احمد طنطاوى",
+    "باسم نشأت صالح",
+    "سعيد حسين على",
+    "شادي رأفت",
+    "محمد حسين محمد",
+    "مصطفى محمود عبد النعيم",
+    "محمود محمد عبدالحميد",
+    "مصطفي سامى مصطفي",
+    "رافت سيد عبد الشكور",
+    "بلال رمضان قطب",
+    "هانى عبدالحميد احمد",
+    "محمد احمد احمد محمد ",
+    "نادر نجيب حنا",
+    "ايمن جمال جرجس",
+  ];
+
+  // تحميل أسماء الفنيين في القائمة
+  function populateTechnicians() {
+    const technicianSelect = document.getElementById("technician");
+    technicianList.forEach((name) => {
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      technicianSelect.appendChild(opt);
+    });
+  }
+
+  // استدعاء دالة تعبئة القائمة عند تحميل الصفحة
+  window.addEventListener("DOMContentLoaded", () => {
+    populateTechnicians();
+  });
+
+      
   // ====== قاعدة البيانات ======
   let db;
   const dbRequest = indexedDB.open("RepaymentApp", 1);
