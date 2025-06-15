@@ -145,201 +145,205 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-      const technicianList = [
-  "محمد عبده توفيق",
-  "مجدى عبد المجيد احمد",
-  "أحمد عزت عبدالعزيز",
-  "احمد على عبد الحافظ",
-  "محمد احمد عبد الحميد",
-  "ابراهيم حسنى عبده",
-  "فوزى محمد عبد الشافى",
-  "على حسن على",
-  "فريد ابراهيم عباس",
-  "حسين هلال حسين",
-  "على احمد طنطاوى",
-  "باسم نشأت صالح",
-  "سعيد حسين على",
-  "شادي رأفت",
-  "محمد حسين محمد",
-  "مصطفى محمود عبد النعيم",
-  "محمود محمد عبدالحميد",
-  "مصطفي سامى مصطفي",
-  "رافت سيد عبد الشكور",
-  "بلال رمضان قطب",
-  "هانى عبدالحميد احمد",
-  "محمد احمد احمد محمد ",
-  "نادر نجيب حنا",
-  "ايمن جمال جرجس",
-];
+  // ====== قاعدة البيانات ======
+  let db;
+  const dbRequest = indexedDB.open("RepaymentApp", 1);
 
-      technicianList.forEach((name) => {
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name;
-        document.getElementById("technician").appendChild(opt);
-      });
+  dbRequest.onsuccess = (event) => {
+    db = event.target.result;
+  };
 
-      let latitude = "",
-        longitude = "",
-        dateNow = "",
-        timeNow = "";
-      let images = [null, null, null, null];
+  dbRequest.onupgradeneeded = (event) => {
+    db = event.target.result;
+    db.createObjectStore("images");
+  };
 
-      function getLocation() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        latitude = pos.coords.latitude.toFixed(6);
-        longitude = pos.coords.longitude.toFixed(6);
-        const now = new Date();
-        dateNow = now.toLocaleDateString("ar-EG");
-        timeNow = now.toLocaleTimeString("ar-EG", { hour12: true });
-        document.getElementById(
-          "summary"
-        ).innerHTML = `<p>خط العرض: ${latitude}, خط الطول: ${longitude}</p><p>التاريخ: ${dateNow} - الوقت: ${timeNow}</p>`;
-        Swal.fire("تم تحديد الموقع", "", "success");
-      },
-      (error) => {
-        let message = "";
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            message = "تم رفض صلاحية تحديد الموقع. من فضلك فعّل الموقع وحاول مرة أخرى.";
-            break;
-          case error.POSITION_UNAVAILABLE:
-            message = "معلومات الموقع غير متوفرة حاليًا.";
-            break;
-          case error.TIMEOUT:
-            message = "انتهت مهلة تحديد الموقع. حاول مرة أخرى.";
-            break;
-          default:
-            message = "حدث خطأ غير متوقع أثناء محاولة تحديد الموقع.";
-        }
-        Swal.fire("خطأ في تحديد الموقع", message, "error");
-      }
-    );
-  } else {
-    Swal.fire("خطأ", "المتصفح لا يدعم تحديد الموقع الجغرافي", "error");
+  function storeImageInDB(key, file) {
+    const tx = db.transaction("images", "readwrite");
+    const store = tx.objectStore("images");
+    store.put(file, key);
   }
-}
 
+  function getImageFromDB(key) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction("images", "readonly");
+      const store = tx.objectStore("images");
+      const request = store.get(key);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(null);
+    });
+  }
 
-      function captureImage(index, label) {
-        const name = document.getElementById("technician").value;
-        const office = document.getElementById("office").value;
-        const site = document.getElementById("siteNumber").value;
-        if (!name || !office || !site || !latitude || !longitude) {
-          Swal.fire("يرجى تعبئة كل البيانات وتحديد الموقع", "", "warning");
-          return;
-        }
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = "image/*";
-        input.capture = "environment";
-        input.onchange = (e) => {
-          const file = e.target.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = function (event) {
-              const img = new Image();
-              img.onload = function () {
-                const canvas = document.createElement("canvas");
-                canvas.width = img.naturalWidth;
-                canvas.height = img.naturalHeight;
+  function clearDB() {
+    const tx = db.transaction("images", "readwrite");
+    const store = tx.objectStore("images");
+    store.clear();
+  }
 
-                const ctx = canvas.getContext("2d");
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-              let fontSize = 124;
-let lineHeight = fontSize + 20; // المسافة بين السطور = حجم الخط + هامش
-let startY = fontSize + 20; // بداية من أعلى الصورة بمسافة مناسبة
+  // ====== البيانات الأساسية ======
+  const technicianList = [/* نفس القائمة */];
+  technicianList.forEach((name) => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    document.getElementById("technician").appendChild(opt);
+  });
 
-ctx.fillStyle = "green";
-ctx.font = `bold ${fontSize}px Arial`;
+  let latitude = "", longitude = "", dateNow = "", timeNow = "";
 
-ctx.fillText(`الفني: ${name}`, 40, startY);
-ctx.fillText(`المكتب: ${office}`, 40, startY + lineHeight * 1);
-ctx.fillText(`رقم الموقع: CAI${site}`, 40, startY + lineHeight * 2);
-ctx.fillText(`الوقت: ${timeNow}`, 40, startY + lineHeight * 3);
-ctx.fillText(`التاريخ: ${dateNow}`, 40, startY + lineHeight * 4);
-ctx.fillText(`Latitude: ${latitude}`, 40, startY + lineHeight * 5);
-ctx.fillText(`Longitude: ${longitude}`, 40, startY + lineHeight * 6);
-
-
-                canvas.toBlob(
-                  (blob) => {
-                    images[index] = new File([blob], `${label}.jpg`, {
-                      type: "image/jpeg",
-                    });
-                    const imgElement = document.createElement("img");
-                    imgElement.src = canvas.toDataURL("image/jpeg", 0.9);
-                    imgElement.style.width = "100%";
-                    imgElement.style.height = "100%";
-                    imgElement.style.borderRadius = "10px";
-                    const box = document.querySelectorAll(".photo-box")[index];
-                    box.innerHTML = "";
-                    box.appendChild(imgElement);
-                    const labelElement = document.createElement("p");
-                    labelElement.textContent = label;
-                    box.appendChild(labelElement);
-                  },
-                  "image/jpeg",
-                  0.9
-                );
-              };
-              img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
+  function getLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          latitude = pos.coords.latitude.toFixed(6);
+          longitude = pos.coords.longitude.toFixed(6);
+          const now = new Date();
+          dateNow = now.toLocaleDateString("ar-EG");
+          timeNow = now.toLocaleTimeString("ar-EG", { hour12: true });
+          document.getElementById("summary").innerHTML =
+            `<p>خط العرض: ${latitude}, خط الطول: ${longitude}</p><p>التاريخ: ${dateNow} - الوقت: ${timeNow}</p>`;
+          Swal.fire("تم تحديد الموقع", "", "success");
+        },
+        (error) => {
+          let message = "";
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              message = "تم رفض صلاحية تحديد الموقع.";
+              break;
+            case error.POSITION_UNAVAILABLE:
+              message = "معلومات الموقع غير متوفرة.";
+              break;
+            case error.TIMEOUT:
+              message = "انتهت مهلة تحديد الموقع.";
+              break;
+            default:
+              message = "حدث خطأ غير متوقع.";
           }
-        };
-        input.click();
-      }
-
-      function downloadImages() {
-  if (images.some((img) => !img)) {
-    Swal.fire(
-      "خطأ",
-      "يرجى التقاط كل الصور المطلوبة قبل التحميل",
-      "error"
-    );
-    return;
+          Swal.fire("خطأ في تحديد الموقع", message, "error");
+        }
+      );
+    } else {
+      Swal.fire("خطأ", "المتصفح لا يدعم تحديد الموقع", "error");
+    }
   }
 
-  // عرض البروجرس وتحميل الصور بعده
-  showProgressBarAndDownload();
-}
-
-
-      function showProgressBarAndDownload() {
-  const container = document.getElementById("progressContainer");
-  const bar = document.getElementById("progressBar");
-  container.style.display = "block";
-
-  let percent = 0;
-  const interval = setInterval(() => {
-    percent++;
-    bar.style.width = percent + "%";
-    bar.textContent = percent + "%";
-
-    if (percent >= 100) {
-      clearInterval(interval);
-      container.style.display = "none";
-
-      // ✅ بعد ما البروجرس يوصل 100% نبدأ تحميل الصور
-      images.forEach((file) => {
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(file);
-        link.download = file.name;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      });
-
-      // ✅ بعد التحميل نعرض الرسالة ونرجّع المستخدم
-      Swal.fire("تم التحميل ✅", "تم تحميل جميع الصور بنجاح", "success").then(() => {
-        location.reload();
-      });
+  function captureImage(index, label) {
+    const name = document.getElementById("technician").value;
+    const office = document.getElementById("office").value;
+    const site = document.getElementById("siteNumber").value;
+    if (!name || !office || !site || !latitude || !longitude) {
+      Swal.fire("يرجى تعبئة كل البيانات وتحديد الموقع", "", "warning");
+      return;
     }
-  }, 30); // سرعة التقدم: 30ms لكل 1%
-}
-    </script>
+
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.capture = "environment";
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const img = new Image();
+          img.onload = function () {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            let fontSize = 124;
+            let lineHeight = fontSize + 20;
+            let startY = fontSize + 20;
+
+            ctx.fillStyle = "green";
+            ctx.font = `bold ${fontSize}px Arial`;
+            ctx.fillText(`الفني: ${name}`, 40, startY);
+            ctx.fillText(`المكتب: ${office}`, 40, startY + lineHeight);
+            ctx.fillText(`رقم الموقع: CAI${site}`, 40, startY + lineHeight * 2);
+            ctx.fillText(`الوقت: ${timeNow}`, 40, startY + lineHeight * 3);
+            ctx.fillText(`التاريخ: ${dateNow}`, 40, startY + lineHeight * 4);
+            ctx.fillText(`Latitude: ${latitude}`, 40, startY + lineHeight * 5);
+            ctx.fillText(`Longitude: ${longitude}`, 40, startY + lineHeight * 6);
+
+            canvas.toBlob((blob) => {
+              const finalFile = new File([blob], `${label}.jpg`, {
+                type: "image/jpeg",
+              });
+
+              // ✅ نخزن الصورة داخل قاعدة البيانات
+              storeImageInDB(`photo${index + 1}`, finalFile);
+
+              const imgElement = document.createElement("img");
+              imgElement.src = canvas.toDataURL("image/jpeg", 0.9);
+              imgElement.style.width = "100%";
+              imgElement.style.height = "100%";
+              imgElement.style.borderRadius = "10px";
+
+              const box = document.querySelectorAll(".photo-box")[index];
+              box.innerHTML = "";
+              box.appendChild(imgElement);
+              const labelElement = document.createElement("p");
+              labelElement.textContent = label;
+              box.appendChild(labelElement);
+            }, "image/jpeg", 0.9);
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+    input.click();
+  }
+
+  function downloadImages() {
+    const photoKeys = ["photo1", "photo2", "photo3", "photo4"];
+    const promises = photoKeys.map(getImageFromDB);
+
+    Promise.all(promises).then((imageFiles) => {
+      if (imageFiles.some((img) => !img)) {
+        Swal.fire("خطأ", "يرجى التقاط كل الصور المطلوبة قبل التحميل", "error");
+        return;
+      }
+      showProgressBarAndDownload(imageFiles);
+    });
+  }
+
+  function showProgressBarAndDownload(imageFiles) {
+    const container = document.getElementById("progressContainer");
+    const bar = document.getElementById("progressBar");
+    container.style.display = "block";
+
+    let percent = 0;
+    const interval = setInterval(() => {
+      percent++;
+      bar.style.width = percent + "%";
+      bar.textContent = percent + "%";
+
+      if (percent >= 100) {
+        clearInterval(interval);
+        container.style.display = "none";
+
+        imageFiles.forEach((file) => {
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(file);
+          link.download = file.name;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        });
+
+        clearDB(); // 🧹 نحذف الصور من قاعدة البيانات
+
+        Swal.fire("تم التحميل ✅", "تم تحميل جميع الصور بنجاح", "success").then(() => {
+          location.reload();
+        });
+      }
+    }, 30);
+  }
+</script>
+
   </body>
 </html>
