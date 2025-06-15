@@ -264,26 +264,17 @@ ctx.fillText(`Latitude: ${latitude}`, 40, startY + lineHeight * 5);
 ctx.fillText(`Longitude: ${longitude}`, 40, startY + lineHeight * 6);
 
 
-                canvas.toBlob(
-                  (blob) => {
-                    images[index] = new File([blob], `${label}.jpg`, {
-                      type: "image/jpeg",
-                    });
-                    const imgElement = document.createElement("img");
-                    imgElement.src = canvas.toDataURL("image/jpeg", 0.9);
-                    imgElement.style.width = "100%";
-                    imgElement.style.height = "100%";
-                    imgElement.style.borderRadius = "10px";
-                    const box = document.querySelectorAll(".photo-box")[index];
-                    box.innerHTML = "";
-                    box.appendChild(imgElement);
-                    const labelElement = document.createElement("p");
-                    labelElement.textContent = label;
-                    box.appendChild(labelElement);
-                  },
-                  "image/jpeg",
-                  0.9
-                );
+               canvas.toBlob(
+  (blob) => {
+    images[index] = new File([blob], `${label}.jpg`, {
+      type: "image/jpeg",
+    });
+    ...
+  },
+  "image/jpeg",
+  0.6 // ← الجودة أقل لكن الأبعاد الأصلية محفوظة
+);
+
               };
               img.src = event.target.result;
             };
